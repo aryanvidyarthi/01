@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Experiment 1 - Copy to Clipboard</title>
+  </head>
+  <body>
+    <textarea id="exp" style="position: absolute; left: -9999px;">
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;string&gt;
+#include &lt;unordered_map&gt;
+#include &lt;unordered_set&gt;
+
+using namespace std;
+
+// Function to compute LEADING set for a non-terminal
+unordered_set&lt;char&gt; computeLeading(char nonTerminal, const unordered_map&lt;char, vector&lt;string&gt;&gt;&amp; productions, unordered_map&lt;char, unordered_set&lt;char&gt;&gt;&amp; leadingSets) {
+    if (leadingSets.count(nonTerminal)) {
+        return leadingSets[nonTerminal];
+    }
+
+    unordered_set&lt;char&gt; leading;
+    for (const auto&amp; production : productions.at(nonTerminal)) {
+        if (production.empty()) continue;
+
+        if (!isupper(production[0])) {
+            leading.insert(production[0]);
+        } else {
+            unordered_set&lt;char&gt; subLeading = computeLeading(production[0], productions, leadingSets);
+            leading.insert(subLeading.begin(), subLeading.end());
+        }
+    }
+    leadingSets[nonTerminal] = leading;
+    return leading;
+}
+
+// Function to compute TRAILING set for a non-terminal
+unordered_set&lt;char&gt; computeTrailing(char nonTerminal, const unordered_map&lt;char, vector&lt;string&gt;&gt;&amp; productions, unordered_map&lt;char, unordered_set&lt;char&gt;&gt;&amp; trailingSets) {
+    if (trailingSets.count(nonTerminal)) {
+        return trailingSets[nonTerminal];
+    }
+    unordered_set&lt;char&gt; trailing;
+    for (const auto&amp; production : productions.at(nonTerminal)) {
+        if (production.empty()) continue;
+        if (!isupper(production.back())) {
+            trailing.insert(production.back());
+        } else {
+            unordered_set&lt;char&gt; subTrailing = computeTrailing(production.back(), productions, trailingSets);
+            trailing.insert(subTrailing.begin(), subTrailing.end());
+        }
+    }
+    trailingSets[nonTerminal] = trailing;
+    return trailing;
+}
+
+int main() {
+    unordered_map&lt;char, vector&lt;string&gt;&gt; productions = {
+        {'S', {"AB"}},
+        {'A', {"a", "bC"}},
+        {'B', {"c", "d"}},
+        {'C', {"e"}}
+    };
+
+    unordered_map&lt;char, unordered_set&lt;char&gt;&gt; leadingSets;
+    unordered_map&lt;char, unordered_set&lt;char&gt;&gt; trailingSets;
+
+    for (const auto&amp; entry : productions) {
+        computeLeading(entry.first, productions, leadingSets);
+        computeTrailing(entry.first, productions, trailingSets);
+    }
+
+    cout &lt;&lt; "LEADING Sets:" &lt;&lt; endl;
+    for (const auto&amp; entry : leadingSets) {
+        cout &lt;&lt; "LEADING(" &lt;&lt; entry.first &lt;&lt; ") = { ";
+        for (char terminal : entry.second) {
+            cout &lt;&lt; terminal &lt;&lt; " ";
+        }
+        cout &lt;&lt; "}" &lt;&lt; endl;
+    }
+
+    cout &lt;&lt; "\nTRAILING Sets:" &lt;&lt; endl;
+    for (const auto&amp; entry : trailingSets) {
+        cout &lt;&lt; "TRAILING(" &lt;&lt; entry.first &lt;&lt; ") = { ";
+        for (char terminal : entry.second) {
+            cout &lt;&lt; terminal &lt;&lt; " ";
+        }
+        cout &lt;&lt; "}" &lt;&lt; endl;
+    }
+
+    return 0;
+}
+    </textarea>
+
+    <script>
+      const textarea = document.getElementById("exp");
+      textarea.select();
+      document.execCommand("copy");
+      alert("✅ Experiment code copied to clipboard!");
+    </script>
+  </body>
+</html>
